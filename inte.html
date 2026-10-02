@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora Moderna</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Smooth transition for theme toggle */
+    * {
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease, transform 0.05s ease;
+    }
+    /* Custom scrollbar for history panel */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.4);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex items-center justify-center p-4 sm:p-6 transition-colors duration-300">
+
+  <!-- Main Container -->
+  <div class="w-full max-w-4xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] relative">
+    
+    <!-- Calculator Section -->
+    <div class="flex-1 p-6 sm:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800">
+      
+      <!-- Top Bar: Title & Theme Toggle -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-2">
+          <div class="w-3 h-3 rounded-full bg-indigo-500"></div>
+          <span class="font-bold tracking-wide text-sm uppercase text-slate-500 dark:text-slate-400">Calculadora</span>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <!-- Toggle History Panel (Mobile) -->
+          <button id="toggleHistoryMobile" class="md:hidden p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800" title="Ver Historial">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </button>
+          
+          <!-- Theme Toggle Button -->
+          <button id="themeToggle" class="p-2.5 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50" title="Cambiar tema">
+            <i id="themeIcon" class="fa-solid fa-moon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Display Screen -->
+      <div class="my-4 bg-slate-50 dark:bg-slate-950/60 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 flex flex-col justify-end items-end min-h-[120px] shadow-inner overflow-hidden">
+        <!-- Expression Line -->
+        <div id="expression" class="font-mono-num text-sm sm:text-base text-slate-400 dark:text-slate-500 h-6 overflow-x-auto w-full text-right whitespace-nowrap scrollbar-none">
+          <!-- Expression goes here -->
+        </div>
+        <!-- Main Display Value -->
+        <div id="display" class="font-mono-num text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 overflow-x-auto w-full text-right whitespace-nowrap scrollbar-none mt-1">
+          0
+        </div>
+      </div>
+
+      <!-- Keypad Grid -->
+      <div class="grid grid-cols-4 gap-2.5 sm:gap-3 mt-2">
+        <!-- Row 1 -->
+        <button data-action="clear" class="btn btn-function text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/40">AC</button>
+        <button data-action="delete" class="btn btn-function text-slate-600 dark:text-slate-300 bg-slate-200/60 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-700">
+          <i class="fa-solid fa-backspace"></i>
+        </button>
+        <button data-action="percent" class="btn btn-function text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40">%</button>
+        <button data-operator="/" class="btn btn-operator text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40">÷</button>
+
+        <!-- Row 2 -->
+        <button data-number="7" class="btn btn-number">7</button>
+        <button data-number="8" class="btn btn-number">8</button>
+        <button data-number="9" class="btn btn-number">9</button>
+        <button data-operator="*" class="btn btn-operator text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40">×</button>
+
+        <!-- Row 3 -->
+        <button data-number="4" class="btn btn-number">4</button>
+        <button data-number="5" class="btn btn-number">5</button>
+        <button data-number="6" class="btn btn-number">6</button>
+        <button data-operator="-" class="btn btn-operator text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40">−</button>
+
+        <!-- Row 4 -->
+        <button data-number="1" class="btn btn-number">1</button>
+        <button data-number="2" class="btn btn-number">2</button>
+        <button data-number="3" class="btn btn-number">3</button>
+        <button data-operator="+" class="btn btn-operator text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40">+</button>
+
+        <!-- Row 5 -->
+        <button data-action="toggle-sign" class="btn btn-number">±</button>
+        <button data-number="0" class="btn btn-number">0</button>
+        <button data-action="decimal" class="btn btn-number">.</button>
+        <button data-action="calculate" class="btn bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 font-bold">=</button>
+      </div>
+    </div>
+
+    <!-- History Panel -->
+    <div id="historyPanel" class="w-full md:w-80 bg-slate-50/50 dark:bg-slate-900/50 p-6 flex flex-col justify-between border-t md:border-t-0 border-slate-200 dark:border-slate-800 transition-all duration-300 hidden md:flex">
+      <div>
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+          <h2 class="font-semibold text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            Historial
+          </h2>
+          <button id="clearHistoryBtn" class="text-xs font-medium text-slate-400 hover:text-rose-500 dark:text-slate-500 dark:hover:text-rose-400 transition-colors" title="Borrar historial">
+            Limpiar
+          </button>
+        </div>
+
+        <div id="historyList" class="space-y-3 overflow-y-auto max-h-[380px] pr-1">
+          <!-- History items will be dynamically inserted here -->
+          <div id="emptyHistory" class="text-center py-12 text-slate-400 dark:text-slate-600 text-sm">
+            <i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>
+            Sin cálculos recientes
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-center text-slate-400 dark:text-slate-600">
+        Haz clic en cualquier cálculo para usar el resultado
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Component Styles & JavaScript Logic -->
+  <script>
+    // --- Styles Injector for Buttons ---
+    const style = document.createElement('style');
+    style.textContent = `
+      .btn {
+        height: 3.5rem;
+        border-radius: 1rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        user-select: none;
+        outline: none;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+      .btn:active {
+        transform: scale(0.95);
+      }
+      .btn-number {
+        background-color: rgba(255, 255, 255, 0.8);
+        color: #1e293b;
+      }
+      .dark .btn-number {
+        background-color: rgba(30, 41, 59, 0.6);
+        color: #f8fafc;
+      }
+      .btn-number:hover {
+        background-color: #ffffff;
+      }
+      .dark .btn-number:hover {
+        background-color: rgba(51, 65, 85, 0.8);
+      }
+    `;
+    document.head.appendChild(style);
+
+    // --- Calculator State & Logic ---
+    class Calculator {
+      constructor(displayElement, expressionElement, historyListElement, emptyHistoryElement) {
+        this.displayElement = displayElement;
+        this.expressionElement = expressionElement;
+        this.historyListElement = historyListElement;
+        this.emptyHistoryElement = emptyHistoryElement;
+        
+        this.clear();
+        this.history = JSON.parse(localStorage.getItem('calc_history') || '[]');
+        this.renderHistory();
+      }
+
+      clear() {
+        this.currentValue = '0';
+        this.previousValue = '';
+        this.operation = null;
+        this.shouldResetScreen = false;
+        this.updateDisplay();
+      }
+
+      delete() {
+        if (this.shouldResetScreen) return;
+        if (this.currentValue.length === 1 || (this.currentValue.length === 2 && this.currentValue.startsWith('-'))) {
+          this.currentValue = '0';
+        } else {
+          this.currentValue = this.currentValue.slice(0, -1);
+        }
+        this.updateDisplay();
+      }
+
+      appendNumber(number) {
+        if (this.currentValue === '0' || this.shouldResetScreen) {
+          this.currentValue = number;
+          this.shouldResetScreen = false;
+        } else {
+          if (this.currentValue.length >= 12) return; // Limit length
+          this.currentValue += number;
+        }
+        this.updateDisplay();
+      }
+
+      appendDecimal() {
+        if (this.shouldResetScreen) {
+          this.currentValue = '0.';
+          this.shouldResetScreen = false;
+          this.updateDisplay();
+          return;
+        }
+        if (!this.currentValue.includes('.')) {
+          this.currentValue += '.';
+          this.updateDisplay();
+        }
+      }
+
+      toggleSign() {
+        if (this.currentValue === '0') return;
+        this.currentValue = (parseFloat(this.currentValue) * -1).toString();
+        this.updateDisplay();
+      }
+
+      percent() {
+        if (this.currentValue === '0') return;
+        this.currentValue = (parseFloat(this.currentValue) / 100).toString();
+        this.updateDisplay();
+      }
+
+      chooseOperation(op) {
+        if (this.operation !== null && !this.shouldResetScreen) {
+          this.calculate();
+        }
+        this.operation = op;
+        this.previousValue = this.currentValue;
+        this.shouldResetScreen = true;
+        this.updateDisplay();
+      }
+
+      calculate() {
+        if (this.operation === null || this.shouldResetScreen) return;
+        
+        let computation;
+        const prev = parseFloat(this.previousValue);
+        const current = parseFloat(this.currentValue);
+
+        if (isNaN(prev) || isNaN(current)) return;
+
+        switch (this.operation) {
+          case '+':
+            computation = prev + current;
+            break;
+          case '-':
+            computation = prev - current;
+            break;
+          case '*':
+            computation = prev * current;
+            break;
+          case '/':
+            if (current === 0) {
+              alert('No se puede dividir por cero');
+              this.clear();
+              return;
+            }
+            computation = prev / current;
+            break;
+          default:
+            return;
+        }
+
+        const opSymbol = { '+': '+', '-': '−', '*': '×', '/': '÷' }[this.operation];
+        const exprStr = `${this.formatNumber(this.previousValue)} ${opSymbol} ${this.formatNumber(this.currentValue)}`;
+        
+        // Round to avoid precision issues
+        computation = Math.round(computation * 1e10) / 1e10;
+        
+        this.addToHistory(exprStr, computation.toString());
+        
+        this.currentValue = computation.toString();
+        this.operation = null;
+        this.previousValue = '';
+        this.shouldResetScreen = true;
+        this.updateDisplay();
+      }
+
+      formatNumber(numStr) {
+        if (!numStr) return '';
+        const [integer, decimal] = numStr.split('.');
+        const parsedInt = parseFloat(integer);
+        
+        let formattedInt = '';
+        if (isNaN(parsedInt)) {
+          formattedInt = '';
+        } else {
+          formattedInt = parsedInt.toLocaleString('es-ES');
+        }
+
+        if (decimal !== undefined) {
+          return `${formattedInt}.${decimal}`;
+        }
+        return formattedInt;
+      }
+
+      updateDisplay() {
+        this.displayElement.innerText = this.formatNumber(this.currentValue) || '0';
+        
+        if (this.operation !== null) {
+          const opSymbol = { '+': '+', '-': '−', '*': '×', '/': '÷' }[this.operation];
+          this.expressionElement.innerText = `${this.formatNumber(this.previousValue)} ${opSymbol}`;
+        } else {
+          this.expressionElement.innerText = '';
+        }
+      }
+
+      addToHistory(expression, result) {
+        const item = { expression, result, id: Date.now() };
+        this.history.unshift(item);
+        if (this.history.length > 20) this.history.pop();
+        
+        localStorage.setItem('calc_history', JSON.stringify(this.history));
+        this.renderHistory();
+      }
+
+      clearHistory() {
+        this.history = [];
+        localStorage.removeItem('calc_history');
+        this.renderHistory();
+      }
+
+      renderHistory() {
+        if (!this.historyListElement) return;
+
+        if (this.history.length === 0) {
+          this.emptyHistoryElement.classList.remove('hidden');
+          this.historyListElement.querySelectorAll('.history-item').forEach(el => el.remove());
+          return;
+        }
+
+        this.emptyHistoryElement.classList.add('hidden');
+        
+        // Clear previous items
+        const items = this.historyListElement.querySelectorAll('.history-item');
+        items.forEach(el => el.remove());
+
+        this.history.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'history-item p-3 rounded-xl bg-white dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 cursor-pointer transition-all group';
+          div.innerHTML = `
+            <div class="text-xs text-slate-400 dark:text-slate-500 font-mono-num text-right group-hover:text-indigo-500 transition-colors">${item.expression} =</div>
+            <div class="text-lg font-semibold text-slate-800 dark:text-slate-200 font-mono-num text-right">${this.formatNumber(item.result)}</div>
+          `;
+          
+          div.addEventListener('click', () => {
+            this.currentValue = item.result;
+            this.shouldResetScreen = false;
+            this.updateDisplay();
+          });
+
+          this.historyListElement.appendChild(div);
+        });
+      }
+    }
+
+    // --- DOM Elements & Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+      const display = document.getElementById('display');
+      const expression = document.getElementById('expression');
+      const historyList = document.getElementById('historyList');
+      const emptyHistory = document.getElementById('emptyHistory');
+      const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      const toggleHistoryMobile = document.getElementById('toggleHistoryMobile');
+      const historyPanel = document.getElementById('historyPanel');
+
+      const calc = new Calculator(display, expression, historyList, emptyHistory);
+
+      // --- Button Click Events ---
+      document.querySelectorAll('[data-number]').forEach(button => {
+        button.addEventListener('click', () => calc.appendNumber(button.dataset.number));
+      });
+
+      document.querySelectorAll('[data-operator]').forEach(button => {
+        button.addEventListener('click', () => calc.chooseOperation(button.dataset.operator));
+      });
+
+      document.querySelectorAll('[data-action]').forEach(button => {
+        button.addEventListener('click', () => {
+          const action = button.dataset.action;
+          switch (action) {
+            case 'clear':
+              calc.clear();
+              break;
+            case 'delete':
+              calc.delete();
+              break;
+            case 'calculate':
+              calc.calculate();
+              break;
+            case 'decimal':
+              calc.appendDecimal();
+              break;
+            case 'toggle-sign':
+              calc.toggleSign();
+              break;
+            case 'percent':
+              calc.percent();
+              break;
+          }
+        });
+      });
+
+      clearHistoryBtn.addEventListener('click', () => calc.clearHistory());
+
+      // --- Keyboard Support ---
+      document.addEventListener('keydown', (e) => {
+        if (e.key >= '0' && e.key <= '9') calc.appendNumber(e.key);
+        if (e.key === '.') calc.appendDecimal();
+        if (e.key === '=' || e.key === 'Enter') {
+          e.preventDefault();
+          calc.calculate();
+        }
+        if (e.key === 'Backspace') calc.delete();
+        if (e.key === 'Escape') calc.clear();
+        if (e.key === '+') calc.chooseOperation('+');
+        if (e.key === '-') calc.chooseOperation('-');
+        if (e.key === '*') calc.chooseOperation('*');
+        if (e.key === '/') {
+          e.preventDefault();
+          calc.chooseOperation('/');
+        }
+        if (e.key === '%') calc.percent();
+      });
+
+      // --- Theme Toggle Logic ---
+      const initTheme = () => {
+        const isDark = localStorage.getItem('theme') === 'dark' || 
+          (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          themeIcon.className = 'fa-solid fa-sun';
+        } else {
+          document.documentElement.classList.remove('dark');
+          themeIcon.className = 'fa-solid fa-moon';
+        }
+      };
+
+      themeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        themeIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      });
+
+      initTheme();
+
+      // --- Mobile History Toggle ---
+      toggleHistoryMobile.addEventListener('click', () => {
+        historyPanel.classList.toggle('hidden');
+      });
+    });
+  </script>
+</body>
+</html>
